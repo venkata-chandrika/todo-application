@@ -105,42 +105,37 @@ app.post("/todos/", async (require, response) => {
   response.send("Todo Successfully Added");
 });
 //API 4 update
-app.put("/todo/:todoId/", async (request, response) => {
+app.put("/todos/:todoId/", async (request, response) => {
   const { todoId } = request.params;
-  let updateColumn = "";
-  let data = null;
   const reqBody = request.body;
+  let updated = "";
   switch (true) {
-    case reqBody.priority !== undefined:
-      updateColumn = "Status";
-      break;
     case reqBody.status !== undefined:
-      updateColumn = "Priority";
+      updated = "Status";
+      break;
+    case reqBody.priority !== undefined:
+      updated = "Priority";
       break;
     case reqBody.todo !== undefined:
-      updateColumn = "Todo";
+      updated = "Todo";
       break;
   }
-  const todoQuery = `select * from todo where id = ${todoId}`;
-  const todoPre = await db.get(todoQuery);
-  const {
-    status = todoPre.status,
-    priority = todoPre.priority,
-    todo = todoPre.todo,
-  } = request.body;
-
-  const updateQuery = `update todo
-   set
-    status='${status}', 
-    todo='${todo}',
-    priority='${priority}'
-   where 
-    id = ${todoId};`;
-  await db.run(updateQuery);
-  response.send(`${updatedColumn} Updated`);
+  if (updated !== undefined) {
+    const todoQuery = `select * from todo where id= ${todoId}`;
+    const PreviousTodo = await db.get(todoQuery);
+    response.send(PreviousTodo);
+    const {
+      status = PreviousTodo.status,
+      todo = PreviousTodo.todo,
+      priority = PreviousTodo.priority,
+    } = request.body;
+    const updateQuery = `update todo set status='${status}', todo='${todo}',priority='${priority}'`;
+    await db.run(updateQuery);
+    response.send(`${updated} Updated`);
+  }
 });
 //API delete
-app.delete("/todo/:todoId/", async (request, response) => {
+app.delete("/todos/:todoId/", async (request, response) => {
   const { todoId } = request.params;
   const deleteQuery = `delete from todo where id=${todoId};`;
   await db.run(deleteQuery);
